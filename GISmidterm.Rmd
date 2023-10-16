@@ -1,0 +1,30 @@
+---
+title: "GIS Midterm"
+author: "Victoria Mello"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output: github_document
+---
+
+```{r}
+# Load the necessary libraries
+library(sf)
+library(tidyverse)
+library(spatstat)
+
+# Read in fracking wells 
+  frack <- st_read("data/fracking_wells.shp")
+                        
+# Make random selection
+ frack %>% 
+   sample_n(500) -> frack_500
+```
+
+Calculate Ripleys K:
+```{r}
+frack_ppp <- as.ppp(frack_500)  # Convert the sample to a ppp object
+k_result <- Kest(frack_ppp, correction = "Ripley")
+
+plot(k_result, main = "Ripley's K Function")
+summary(k_result)
+```
+
