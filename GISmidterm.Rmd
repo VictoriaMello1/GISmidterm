@@ -1,7 +1,6 @@
 ---
 title: "GIS Midterm"
 author: "Victoria Mello"
-date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output: github_document
 ---
 
@@ -26,5 +25,48 @@ k_result <- Kest(frack_ppp, correction = "Ripley")
 
 plot(k_result, main = "Ripley's K Function")
 summary(k_result)
+```
+
+
+```{r}
+install.packages("tidycensus")
+library(tidycensus)
+
+census_api_key("6b856fa45e9938732c515bd31edebdc2f3667ba0") 
+
+
+install.packages("mapview")
+library(mapview)
+
+# Get the median household income data for Pennsylvania counties in 2020
+pa_income <- get_acs(geography = "county", 
+                     variables = c("B19013_001E", "NAME", "GEOID"), 
+                     year = 2020, 
+                     state = "PA",
+                     geometry = TRUE)
+
+# Rename the columns to more descriptive names
+pa_income <- rename(pa_income, median_income = estimate, county_name = NAME, county_id = GEOID)
+
+# Convert pa_income to a spatial object
+pa_income_sf <- st_as_sf(pa_income, 
+                         coords = c("geometry"), 
+                         crs = 4269)
+
+# Reproject the spatial object to a projected coordinate system that is appropriate for Pennsylvania
+pa_income_sf <- st_transform(pa_income_sf, crs = 2272)
+
+# Create the map using mapview
+mapview(pa_income_sf, zcol = "median_income", 
+        map.types = "OpenStreetMap", 
+        legend = TRUE, 
+        breaks = "jenks", 
+        col.regions = rev(terrain.colors(4)))
+```
+
+Save map as a shapefile: 
+```{r}
+st_write(pa_income_sf, "pa_income.shp")
+
 ```
 
